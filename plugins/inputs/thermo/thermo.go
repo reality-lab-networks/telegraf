@@ -27,7 +27,7 @@ func NewThermo() *Thermo {
 }
 
 const sampleConfig = `
-  ## read jetson-tx1 thermo from sysfs thermal zones
+  ## specify files=[] if you want to override standard location
 `
 
 func (t *Thermo) SampleConfig() string {

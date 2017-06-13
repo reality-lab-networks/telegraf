@@ -18,6 +18,10 @@ build:
 	go install -ldflags \
 		"-X main.version=$(VERSION) -X main.commit=$(COMMIT) -X main.branch=$(BRANCH)" ./...
 
+build-linux-arm64:
+	GOOS=linux GOARCH=arm64 go install -ldflags \
+		"-X main.version=$(VERSION) -X main.commit=$(COMMIT) -X main.branch=$(BRANCH)" ./...
+
 build-windows:
 	GOOS=windows GOARCH=amd64 go build -o telegraf.exe -ldflags \
 		"-X main.version=$(VERSION) -X main.commit=$(COMMIT) -X main.branch=$(BRANCH)" \
