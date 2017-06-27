@@ -2,11 +2,11 @@ package core
 
 import (
 	"bufio"
-	"os"
-	"strconv"
-
 	"github.com/influxdata/telegraf"
 	"github.com/influxdata/telegraf/plugins/inputs"
+	"os"
+	"strconv"
+	"syscall"
 )
 
 type Core struct {
@@ -38,9 +38,7 @@ func NewCore() *Core {
 	}
 }
 
-const sampleConfig = `
-  ## specify thermal=[] if you want to override standard location
-`
+const sampleConfig = `no config needed`
 
 func (t *Core) SampleConfig() string {
 	return sampleConfig
@@ -72,19 +70,42 @@ func (t *Core) Read(filepath string) (int, error) {
 	return -1, err
 }
 
-func (t *Core) Gather(acc telegraf.Accumulator) error {
-	fpgaTemperature, err := t.Read(t.Thermal[0])
-	if err != nil {
-		acc.AddError(err)
-	}
+func (t *Core) ReadSys(filepath string) (int, error) {
+	var fd, numread int
+	var err error
 
-	jetsonTemperature := -1
+	fd, err = syscall.Open(filepath, syscall.O_RDONLY, 0777)
+
+	if err == nil {
+		defer syscall.Close(fd)
+
+		buffer := make([]byte, 10, 100)
+
+		numread, err = syscall.Read(fd, buffer)
+
+		if err != nil {
+			fmt.Print(err.Error(), "\n")
+		}
+
+		fmt.Printf("Numbytes read: %d\n", numread)
+		fmt.Printf("Buffer: %b\n", buffer)
+	}
+	return -1, err
+}
+
+func (t *Core) Gather(acc telegraf.Accumulator) error {
+	// fpgaTemperature, err := t.Read(t.Thermal[0])
+	// if err != nil {
+	// 	acc.AddError(err)
+	// }
+
+	thermo := -1
 	for _, filepath := range t.Thermal[1:] {
 		val, err := t.Read(filepath)
 		if err != nil {
 			acc.AddError(err)
-		} else if jetsonTemperature < val {
-			jetsonTemperature = val
+		} else if thermo < val {
+			thermo = val
 		}
 	}
 
@@ -116,13 +137,13 @@ func (t *Core) Gather(acc telegraf.Accumulator) error {
 	acc.AddFields(
 		"core",
 		map[string]interface{}{
-			"fpga_temperature":   byte(fpgaTemperature),
-			"jetson_temperature": jetsonTemperature,
-			"emc":                emc,
-			"avp":                avp,
-			"nvdec":              nvdec,
-			"msenc":              msenc,
-			"gpu":                gpu,
+			// "fpga_temperature": byte(fpgaTemperature),
+			"thermo": thermo,
+			"emc":    emc,
+			"avp":    avp,
+			"nvdec":  nvdec,
+			"msenc":  msenc,
+			"gpu":    gpu,
 		},
 		nil)
 
