@@ -7,6 +7,11 @@ else
 PATH := $(subst :,/bin:,$(GOPATH))/bin:$(PATH)
 endif
 
+VERSION_LP=$$(git describe --abbrev=0)-$$(git rev-parse --short HEAD)
+
+print-version:
+	@echo "${VERSION_LP}"
+
 # Standard Telegraf build
 default: prepare build
 
@@ -21,8 +26,7 @@ build:
 		"-X main.version=$(VERSION) -X main.commit=$(COMMIT) -X main.branch=$(BRANCH)" ./...
 
 build-linux-arm64:
-	GOOS=linux GOARCH=arm64 go install -ldflags \
-		"-X main.version=$(VERSION) -X main.commit=$(COMMIT) -X main.branch=$(BRANCH)" ./...
+	GOOS=linux GOARCH=arm64 go build -ldflags="-w -s -X main.Version=${VERSION_LP}" -o bin/telegraf ./cmd/telegraf/telegraf.go
 
 build-windows:
 	GOOS=windows GOARCH=amd64 go build -o telegraf.exe -ldflags \
