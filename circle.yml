@@ -28,7 +28,7 @@ deployment:
     commands:
       - echo "export RELEASE_VERSION=$(make print-version)" >> ~/.circlerc
       - cat ~/.circlerc
-      - cd $ROOTPATH && make build-linux-arm64
+      - cd $ROOTPATH && make build-arm64
       - cd /home/ubuntu/go && mv bin/linux_arm64/* $CIRCLE_ARTIFACTS
       - gsutil cp -a public-read $CIRCLE_ARTIFACTS/* gs://liveplanet-releases/camera/telegraf/
   staging:
@@ -36,6 +36,6 @@ deployment:
     commands:
       - echo "export RELEASE_VERSION=$(make print-version)" >> ~/.circlerc
       - cat ~/.circlerc
-      - cd $ROOTPATH && make build-linux-arm64
+      - cd $ROOTPATH && make build-arm64
       - cd /home/ubuntu/go && mv bin/* $CIRCLE_ARTIFACTS
       - gsutil cp -a public-read $CIRCLE_ARTIFACTS/* gs://liveplanet-releases/camera/telegraf/

@@ -13,6 +13,8 @@ default: prepare build
 # Windows build
 windows: prepare-windows build-windows
 
+build-arm64: prepare build-linux-arm64
+
 # Only run the build (no dependency grabbing)
 build:
 	go install -ldflags \
