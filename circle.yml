@@ -29,8 +29,8 @@ deployment:
       - echo "export RELEASE_VERSION=$(make print-version)" >> ~/.circlerc
       - cat ~/.circlerc
       - cd $ROOTPATH && make build-arm64
-      - cd $ROOTPATH && mv bin/* $CIRCLE_ARTIFACTS
-      - gsutil cp -a public-read $CIRCLE_ARTIFACTS/* gs://liveplanet-releases/camera/telegraf/
+      - cd $CIRCLE_ARTIFACTS && tar -cjf telegraf-$RELEASE_VERSION-$CIRCLE_BRANCH.tbz2 *
+      - gsutil cp -a public-read $CIRCLE_ARTIFACTS/telegraf-$RELEASE_VERSION-$CIRCLE_BRANCH.tbz2 gs://liveplanet-releases/camera/telegraf/
   staging:
     branch: master
     commands:
@@ -38,4 +38,5 @@ deployment:
       - cat ~/.circlerc
       - cd $ROOTPATH && make build-arm64
       - cd $ROOTPATH && mv bin/* $CIRCLE_ARTIFACTS
-      - gsutil cp -a public-read $CIRCLE_ARTIFACTS/* gs://liveplanet-releases/camera/telegraf/
+      - cd $CIRCLE_ARTIFACTS && tar -cjf telegraf-$RELEASE_VERSION.tbz2 *
+      - gsutil cp -a public-read $CIRCLE_ARTIFACTS/telegraf-$RELEASE_VERSION.tbz2 gs://liveplanet-releases/camera/telegraf/
