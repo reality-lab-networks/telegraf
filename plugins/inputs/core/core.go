@@ -98,7 +98,7 @@ func (t *Core) ReadSys(filepath string) (int, error) {
 	return -1, err
 }
 
-func (t *Core) ReadSdCardInfo(filepath string) (string, string, string, error) {
+func (t *Core) ReadSdCardInfo(filepath string) (string, int, int, error) {
 	file, err := os.Open(filepath)
 	if err == nil {
 		defer file.Close()
@@ -109,26 +109,42 @@ func (t *Core) ReadSdCardInfo(filepath string) (string, string, string, error) {
 		line := scanner.Text()
 
 		if err = scanner.Err(); err != nil {
-			return "", "", "", err
+			return "", -1, -1, err
 		} else {
 			values := strings.Split(line, " ")
 
 			if len(values) < 3 {
-				return "", "", "", errors.New("not enough data to read")
+				return "", -1, -1, errors.New("not enough data to read")
 			}
 
-			used := values[len(values)-1]
-			total := values[len(values)-2]
+			used := -1
+			total := -1
 
 			names := make([]string, len(values)-2)
 			copy(names, values)
 
 			name := strings.Join(names, " ")
 
+			if i, err := strconv.Atoi(values[len(values)-2]); err == nil {
+				used = i
+			}
+
+			if err != nil {
+				return "", -1, -1, err
+			}
+
+			if i, err := strconv.Atoi(values[len(values)-1]); err == nil {
+				total = i
+			}
+
+			if err != nil {
+				return "", -1, -1, err
+			}
+
 			return name, total, used, nil
 		}
 	}
-	return "", "", "", err
+	return "", -1, -1, err
 }
 
 func (t *Core) Gather(acc telegraf.Accumulator) error {
