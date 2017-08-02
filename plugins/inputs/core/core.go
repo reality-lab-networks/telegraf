@@ -2,11 +2,13 @@ package core
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"github.com/influxdata/telegraf"
 	"github.com/influxdata/telegraf/plugins/inputs"
 	"os"
 	"strconv"
+	"strings"
 	"syscall"
 )
 
@@ -17,6 +19,7 @@ type Core struct {
 	NvDec   string
 	MsEnc   string
 	Gpu     string
+	SdCard  string
 }
 
 func NewCore() *Core {
@@ -31,11 +34,12 @@ func NewCore() *Core {
 			"/sys/devices/virtual/thermal/thermal_zone6/temp",
 			"/sys/devices/virtual/thermal/thermal_zone7/temp",
 		},
-		Emc:   "/sys/kernel/debug/clock/emc/rate",
-		Avp:   "/sys/kernel/debug/clock/avp.sclk/rate",
-		NvDec: "/sys/kernel/debug/clock/nvdec/rate",
-		MsEnc: "/sys/kernel/debug/clock/msenc/rate",
-		Gpu:   "/sys/devices/platform/host1x/gpu.0/load",
+		Emc:    "/sys/kernel/debug/clock/emc/rate",
+		Avp:    "/sys/kernel/debug/clock/avp.sclk/rate",
+		NvDec:  "/sys/kernel/debug/clock/nvdec/rate",
+		MsEnc:  "/sys/kernel/debug/clock/msenc/rate",
+		Gpu:    "/sys/devices/platform/host1x/gpu.0/load",
+		SdCard: "/run/user/1000/sd_stats",
 	}
 }
 
@@ -94,6 +98,39 @@ func (t *Core) ReadSys(filepath string) (int, error) {
 	return -1, err
 }
 
+func (t *Core) ReadSdCardInfo(filepath string) (string, string, string, error) {
+	file, err := os.Open(filepath)
+	if err == nil {
+		defer file.Close()
+
+		scanner := bufio.NewScanner(file)
+		scanner.Scan()
+
+		line := scanner.Text()
+
+		if err = scanner.Err(); err != nil {
+			return "", "", "", err
+		} else {
+			values := strings.Split(line, " ")
+
+			if len(values) < 3 {
+				return "", "", "", errors.New("not enough data to read")
+			}
+
+			used := values[len(values)-1]
+			total := values[len(values)-2]
+
+			names := make([]string, len(values)-2)
+			copy(names, values)
+
+			name := strings.Join(names, " ")
+
+			return name, total, used, nil
+		}
+	}
+	return "", "", "", err
+}
+
 func (t *Core) Gather(acc telegraf.Accumulator) error {
 	// fpgaTemperature, err := t.Read(t.Thermal[0])
 	// if err != nil {
@@ -110,27 +147,32 @@ func (t *Core) Gather(acc telegraf.Accumulator) error {
 		}
 	}
 
-	emc, err := t.Read(t.Emc)
-	if err != nil {
-		acc.AddError(err)
-	}
+	// emc, err := t.Read(t.Emc)
+	// if err != nil {
+	// 	acc.AddError(err)
+	// }
 
-	avp, err := t.Read(t.Avp)
-	if err != nil {
-		acc.AddError(err)
-	}
+	// avp, err := t.Read(t.Avp)
+	// if err != nil {
+	// 	acc.AddError(err)
+	// }
 
-	nvdec, err := t.Read(t.NvDec)
-	if err != nil {
-		acc.AddError(err)
-	}
+	// nvdec, err := t.Read(t.NvDec)
+	// if err != nil {
+	// 	acc.AddError(err)
+	// }
 
-	msenc, err := t.Read(t.MsEnc)
-	if err != nil {
-		acc.AddError(err)
-	}
+	// msenc, err := t.Read(t.MsEnc)
+	// if err != nil {
+	// 	acc.AddError(err)
+	// }
 
-	gpu, err := t.Read(t.Gpu)
+	// gpu, err := t.Read(t.Gpu)
+	// if err != nil {
+	// 	acc.AddError(err)
+	// }
+
+	name, total, used, err := t.ReadSdCardInfo(t.SdCard)
 	if err != nil {
 		acc.AddError(err)
 	}
@@ -140,11 +182,14 @@ func (t *Core) Gather(acc telegraf.Accumulator) error {
 		map[string]interface{}{
 			// "fpga_temperature": byte(fpgaTemperature),
 			"thermo": thermo,
-			"emc":    emc,
-			"avp":    avp,
-			"nvdec":  nvdec,
-			"msenc":  msenc,
-			"gpu":    gpu,
+			// "emc":           emc,
+			// "avp":           avp,
+			// "nvdec":         nvdec,
+			// "msenc":         msenc,
+			// "gpu":           gpu,
+			"sd_card_name":  name,
+			"sd_card_used":  used,
+			"sd_card_total": total,
 		},
 		nil)
 
