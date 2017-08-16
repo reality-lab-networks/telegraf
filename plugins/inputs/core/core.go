@@ -30,16 +30,18 @@ func NewCore() *Core {
 			"/sys/devices/virtual/thermal/thermal_zone1/temp",
 			"/sys/devices/virtual/thermal/thermal_zone2/temp",
 			"/sys/devices/virtual/thermal/thermal_zone3/temp",
+			"/sys/devices/virtual/thermal/thermal_zone4/temp",
 			"/sys/devices/virtual/thermal/thermal_zone5/temp",
 			"/sys/devices/virtual/thermal/thermal_zone6/temp",
-			"/sys/devices/virtual/thermal/thermal_zone7/temp",
+			//"/sys/devices/virtual/thermal/thermal_zone7/temp",
+			"/sys/devices/virtual/thermal/thermal_zone8/temp",
 		},
 		Emc:    "/sys/kernel/debug/clock/emc/rate",
 		Avp:    "/sys/kernel/debug/clock/avp.sclk/rate",
 		NvDec:  "/sys/kernel/debug/clock/nvdec/rate",
 		MsEnc:  "/sys/kernel/debug/clock/msenc/rate",
 		Gpu:    "/sys/devices/platform/host1x/gpu.0/load",
-		SdCard: "/run/user/1000/sd_stats",
+		SdCard: "/run/user/1001/sd_stats",
 	}
 }
 
